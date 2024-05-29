@@ -106,7 +106,7 @@ def gameLoop():
             length_of_snake += 1
 
 
-        # Provera sudara s tijelom zmije
+        # Provera sudara s telom zmije
         for x in snake_list[:-1]:
             if x == snake_head:
                 game_close = True
