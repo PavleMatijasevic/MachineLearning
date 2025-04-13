@@ -1,5 +1,6 @@
 import pygame
 import random
+import time 
 
 pygame.init()
 
@@ -16,9 +17,10 @@ black = (0, 0, 0)
 red = (255, 0, 0)
 blue = (0, 0, 255)
 yellow = (255, 255, 0)
+gray = (200, 200, 200)
 
 # Igrac
-player_width = 70
+player_width = 50
 player_height = 10
 player_x = width // 2
 player_y = height - 40
@@ -44,7 +46,7 @@ score = 0
 running = True
 
 def draw_player(x):
-    pygame.draw.rect(screen, blue, (x, player_y, player_width, player_height))
+    pygame.draw.rect(screen, white, (x, player_y, player_width, player_height))
 
 def draw_bomb(x, y):
     pygame.draw.circle(screen, red, (x + object_size // 2, y + object_size // 2), object_size // 2)
@@ -52,67 +54,126 @@ def draw_bomb(x, y):
 def draw_star(x, y):
     pygame.draw.circle(screen, yellow, (x + object_size // 2, y + object_size // 2), object_size // 2)
 
-def show_score(score):
-    label = font.render(f"Poeni: {score}", True, black)
-    screen.blit(label, (10, 10))
+def show_text(text, x, y, color=black):
+    label = font.render(text, True, color)
+    screen.blit(label, (x, y))
 
-while running:
-    screen.fill(white)
+def show_button(text, x, y, w, h):
+    rect = pygame.Rect(x, y, w, h)
+    pygame.draw.rect(screen, gray, rect)
+    label = font.render(text, True, black)
+    screen.blit(label, (x + (w - label.get_width()) // 2, y + (h-label.get_height()) // 2))
+    return rect
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+def show_centered_message_with_button(text, restart_game=False):
+    while True:
+        screen.fill(blue)
+        msg = font.render(text, True, red)
+        screen.blit(msg, (width // 2 - msg.get_width() // 2, height // 2 - 60))
+        
+        btn_text = "Igraj ponovo" if restart_game else "Nastavi"
+        btn_rect = show_button(btn_text, width // 2 - 80, height // 2, 160, 50)
 
-    # Kontrole
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_x > 0:
-        player_x -= player_speed
-    if keys[pygame.K_RIGHT] and player_x < width - player_width:
-        player_x += player_speed
+        pygame.display.update()
 
-    # Pomeranje i crtanje bombi
-    for i in range(len(bombs)):
-        bombs[i][1] += bomb_speed
-        draw_bomb(bombs[i][0], bombs[i][1])
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
-        if bombs[i][1] > height:
-            bombs[i][1] = random.randint(-300, -20)
-            bombs[i][0] = random.randint(0, width - object_size)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if btn_rect.collidepoint(mouse_pos):
+                    return restart_game  # True ako restart, False ako nastavi
 
-        # Kolizija sa bombom
-        if (player_y < bombs[i][1] + object_size and
-            player_y + player_height > bombs[i][1] and
-            player_x < bombs[i][0] + object_size and
-            player_x + player_width > bombs[i][0]):
-            screen.fill(white)
-            game_over = font.render("KRAJ IGRE!", True, red)
-            screen.blit(game_over, (width//2 - 80, height//2 - 20))
-            pygame.display.update()
-            pygame.time.wait(2000)
-            running = False
 
-    # Pomeranje i crtanje zvezda
-    for i in range(len(stars)):
-        stars[i][1] += star_speed
-        draw_star(stars[i][0], stars[i][1])
+def run_level(level_num, num_bombs):
+    player_x = width // 2
+    score = 0
+    start_time = time.time()
+    level_duration = 40
 
-        if stars[i][1] > height:
-            stars[i][1] = random.randint(-500, -20)
-            stars[i][0] = random.randint(0, width - object_size)
+    bombs = [[random.randint(0, width - object_size), random.randint(-300, -20)] for _ in range(num_bombs)]
+    stars = [[random.randint(0, width - object_size), random.randint(-500, -20)] for _ in range(3)]
 
-        # Kolizija sa zvezdom
-        if (player_y < stars[i][1] + object_size and
-            player_y + player_height > stars[i][1] and
-            player_x < stars[i][0] + object_size and
-            player_x + player_width > stars[i][0]):
-            score += 5
-            stars[i][1] = random.randint(-500, -20)
-            stars[i][0] = random.randint(0, width - object_size)
+    running = True
+    while running:
+        screen.fill(blue)
+        elapsed = time.time() - start_time
+        remaining = int(level_duration - elapsed)
 
-    draw_player(player_x)
-    show_score(score)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
-    pygame.display.update()
-    clock.tick(60)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and player_x > 0:
+            player_x -= player_speed
+        if keys[pygame.K_RIGHT] and player_x < width - player_width:
+            player_x += player_speed
 
+        for i in range(len(bombs)):
+            bombs[i][1] += bomb_speed
+            draw_bomb(bombs[i][0], bombs[i][1])
+
+            if bombs[i][1] > height:
+                bombs[i][1] = random.randint(-300, -20)
+                bombs[i][0] = random.randint(0, width - object_size)
+
+            if (player_y < bombs[i][1] + object_size and
+                player_y + player_height > bombs[i][1] and
+                player_x < bombs[i][0] + object_size and
+                player_x + player_width > bombs[i][0]):
+                score -= 50
+                bombs[i][1] = random.randint(-300, -20)
+                bombs[i][0] = random.randint(0, width - object_size)
+
+        for i in range(len(stars)):
+            stars[i][1] += star_speed
+            draw_star(stars[i][0], stars[i][1])
+
+            if stars[i][1] > height:
+                stars[i][1] = random.randint(-500, -20)
+                stars[i][0] = random.randint(0, width - object_size)
+
+            if (player_y < stars[i][1] + object_size and
+                player_y + player_height > stars[i][1] and
+                player_x < stars[i][0] + object_size and
+                player_x + player_width > stars[i][0]):
+                score += 5
+                stars[i][1] = random.randint(-500, -20)
+                stars[i][0] = random.randint(0, width - object_size)
+
+        draw_player(player_x)
+        show_text(f"Poeni: {score}", 10, 10)
+        show_text(f"Vreme: {remaining}s", 10, 40)
+        show_text(f"Nivo: {level_num}", width - 120, 10)
+
+        if score < 0:
+            restart = show_centered_message_with_button("Izgubio si! Poeni ispod nule.", restart_game=True)
+            return not restart  # False - ne ide dalje
+
+        if remaining <= 0:
+            if score > 0:
+                show_centered_message_with_button(f"Bravo! Prešao si nivo {level_num}", restart_game=False)
+                return True
+            else:
+                restart = show_centered_message_with_button("Nisi uspeo. Poeni nisu dovoljni.", restart_game=True)
+                return not restart
+
+
+        pygame.display.update()
+        clock.tick(60)
+
+def main_game():
+    while True:
+        for level in range(1, 4):
+            num_bombs = 5 + (level - 1) * 3
+            passed = run_level(level, num_bombs)
+            if not passed:
+                break
+        show_centered_message_with_button("Kraj igre! Hvala na igranju!",restart_game=True)
+
+main_game()
 pygame.quit()
