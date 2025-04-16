@@ -8,8 +8,6 @@ width, height = 600, 400
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Izbegni bombe i sakupi zvezde!")
 
-background_img = pygame.image.load("background.jpg")
-background_img = pygame.transform.scale(background_img,(width, height))
 
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 36)
@@ -37,6 +35,27 @@ num_stars = 3
 bombs = []
 stars = []
 
+backgrounds = [
+    pygame.image.load("background1.png"),
+    pygame.image.load("background2.png"),
+    pygame.image.load("background3.png"),
+    pygame.image.load("background4.png")
+]
+
+
+backgrounds = [
+    pygame.transform.scale(pygame.image.load("background1.png"), (width, height)),
+    pygame.transform.scale(pygame.image.load("background2.png"), (width, height)),
+    pygame.transform.scale(pygame.image.load("background3.png"), (width, height)),
+    pygame.transform.scale(pygame.image.load("background4.png"), (width, height))
+
+]
+
+
+end_screen = pygame.image.load("gameOver.jpg")
+end_screen = pygame.transform.scale(end_screen, (width, height))
+
+
 for _ in range(num_bombs):
     bombs.append([random.randint(0, width - object_size), random.randint(-300, -20)])
 
@@ -48,6 +67,9 @@ star_speed = 4
 score = 0
 running = True
 
+star_img = pygame.image.load("star.jpg")
+star_img = pygame.transform.scale(star_img, (object_size, object_size))
+
 def draw_player(x):
     pygame.draw.rect(screen, black, (x, player_y, player_width, player_height))
 
@@ -56,8 +78,9 @@ def draw_bomb(x, y):
 
 def draw_star(x, y):
     #pygame.draw.circle(screen, yellow, (x + object_size // 2, y + object_size // 2), object_size // 2)
-    star_img = pygame.image.load("star.jpg")
-    star_img = pygame.transform.scale(star_img, (object_size, object_size))
+    #star_img = pygame.image.load("star.jpg")
+    #star_img = pygame.transform.scale(star_img, (object_size, object_size))
+    screen.blit(star_img, (x, y))
 
 def show_text(text, x, y, color=black):
     label = font.render(text, True, color)
@@ -72,10 +95,12 @@ def show_button(text, x, y, w, h):
 
 def show_centered_message_with_button(text, restart_game=False):
     while True:
-        screen.fill(blue)
         msg = font.render(text, True, red)
+        #screen.blit(msg, (width // 2 - msg.get_width() // 2, height // 2 - 60))
+        screen.blit(end_screen, (0,0))
         screen.blit(msg, (width // 2 - msg.get_width() // 2, height // 2 - 60))
-        
+
+
         btn_text = "Igraj ponovo" if restart_game else "Nastavi"
         btn_rect = show_button(btn_text, width // 2 - 80, height // 2, 160, 50)
 
@@ -96,18 +121,20 @@ def run_level(level_num, num_bombs):
     player_x = width // 2
     score = 0
     start_time = time.time()
-    level_duration = 40
+    level_duration = 30
+    bg = backgrounds[level_num - 1]  # Pozadina za nivo
 
     bombs = [[random.randint(0, width - object_size), random.randint(-300, -20)] for _ in range(num_bombs)]
     stars = [[random.randint(0, width - object_size), random.randint(-500, -20)] for _ in range(3)]
 
     running = True
     while running:
-        screen.blit(background_img, (0, 0))
+        screen.blit(bg, (0, 0))  # Pozadina nivoa
+
         elapsed = time.time() - start_time
+        remaining = int(level_duration - elapsed)
         progress = max(0, (level_duration - elapsed) / level_duration)
         draw_progress_bar(150, 10, 300, 20, progress)
-        remaining = int(level_duration - elapsed)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -138,7 +165,7 @@ def run_level(level_num, num_bombs):
 
         for i in range(len(stars)):
             stars[i][1] += star_speed
-            draw_star(stars[i][0], stars[i][1])
+            screen.blit(star_img, (stars[i][0], stars[i][1]))  # crtamo sliku zvezde
 
             if stars[i][1] > height:
                 stars[i][1] = random.randint(-500, -20)
@@ -158,8 +185,8 @@ def run_level(level_num, num_bombs):
         show_text(f"Nivo: {level_num}", width - 120, 10)
 
         if score < 0:
-            restart = show_centered_message_with_button("Izgubio si! Poeni ispod nule.", restart_game=True)
-            return not restart  # False - ne ide dalje
+            restart = show_centered_message_with_button("Izgubio si!", restart_game=True)
+            return not restart
 
         if remaining <= 0:
             if score > 0:
@@ -169,9 +196,9 @@ def run_level(level_num, num_bombs):
                 restart = show_centered_message_with_button("Nisi uspeo. Poeni nisu dovoljni.", restart_game=True)
                 return not restart
 
-
         pygame.display.update()
         clock.tick(60)
+
 
 def draw_progress_bar(x, y, w, h, progress):
     pygame.draw.rect(screen, black, (x, y, w, h), 2) # okvir
