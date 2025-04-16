@@ -8,6 +8,9 @@ width, height = 600, 400
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Izbegni bombe i sakupi zvezde!")
 
+background_img = pygame.image.load("background.jpg")
+background_img = pygame.transform.scale(background_img,(width, height))
+
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 36)
 
@@ -46,13 +49,15 @@ score = 0
 running = True
 
 def draw_player(x):
-    pygame.draw.rect(screen, white, (x, player_y, player_width, player_height))
+    pygame.draw.rect(screen, black, (x, player_y, player_width, player_height))
 
 def draw_bomb(x, y):
     pygame.draw.circle(screen, red, (x + object_size // 2, y + object_size // 2), object_size // 2)
 
 def draw_star(x, y):
-    pygame.draw.circle(screen, yellow, (x + object_size // 2, y + object_size // 2), object_size // 2)
+    #pygame.draw.circle(screen, yellow, (x + object_size // 2, y + object_size // 2), object_size // 2)
+    star_img = pygame.image.load("star.jpg")
+    star_img = pygame.transform.scale(star_img, (object_size, object_size))
 
 def show_text(text, x, y, color=black):
     label = font.render(text, True, color)
@@ -98,8 +103,10 @@ def run_level(level_num, num_bombs):
 
     running = True
     while running:
-        screen.fill(blue)
+        screen.blit(background_img, (0, 0))
         elapsed = time.time() - start_time
+        progress = max(0, (level_duration - elapsed) / level_duration)
+        draw_progress_bar(150, 10, 300, 20, progress)
         remaining = int(level_duration - elapsed)
 
         for event in pygame.event.get():
@@ -165,6 +172,11 @@ def run_level(level_num, num_bombs):
 
         pygame.display.update()
         clock.tick(60)
+
+def draw_progress_bar(x, y, w, h, progress):
+    pygame.draw.rect(screen, black, (x, y, w, h), 2) # okvir
+    inner_width = int(w*progress)
+    pygame.draw.rect(screen, blue, (x+2, y+2, inner_width - 4, h - 4)) # punjenje
 
 def main_game():
     while True:
