@@ -28,9 +28,16 @@ player_y = height - 40
 player_speed = 7
 
 # Bomba i zvezda
-object_size = 20
+object_size = 40
 num_bombs = 5
 num_stars = 3
+
+
+scale_factor = 1.2 # povecanje 30%
+scaled_size = int(object_size*scale_factor)
+
+scale_factor1 = 1.5 # povecanje 90%
+scaled_size1 = int(object_size*scale_factor1)
 
 bombs = []
 stars = []
@@ -39,7 +46,6 @@ backgrounds = [
     pygame.image.load("background1.png"),
     pygame.image.load("background2.png"),
     pygame.image.load("background3.png"),
-    pygame.image.load("background4.png")
 ]
 
 
@@ -47,7 +53,6 @@ backgrounds = [
     pygame.transform.scale(pygame.image.load("background1.png"), (width, height)),
     pygame.transform.scale(pygame.image.load("background2.png"), (width, height)),
     pygame.transform.scale(pygame.image.load("background3.png"), (width, height)),
-    pygame.transform.scale(pygame.image.load("background4.png"), (width, height))
 
 ]
 
@@ -67,14 +72,18 @@ star_speed = 4
 score = 0
 running = True
 
-star_img = pygame.image.load("star.jpg")
-star_img = pygame.transform.scale(star_img, (object_size, object_size))
+star_img = pygame.image.load("star3.png").convert_alpha()
+star_img = pygame.transform.scale(star_img, (scaled_size, scaled_size))
+
+bomb_img = pygame.image.load("bomb1.png").convert_alpha()
+bomb_img = pygame.transform.scale(bomb_img, (scaled_size1, scaled_size1))
 
 def draw_player(x):
     pygame.draw.rect(screen, black, (x, player_y, player_width, player_height))
 
 def draw_bomb(x, y):
-    pygame.draw.circle(screen, red, (x + object_size // 2, y + object_size // 2), object_size // 2)
+    #pygame.draw.circle(screen, red, (x + object_size // 2, y + object_size // 2), object_size // 2)
+    screen.blit(bomb_img, (x, y))
 
 def draw_star(x, y):
     #pygame.draw.circle(screen, yellow, (x + object_size // 2, y + object_size // 2), object_size // 2)
@@ -165,7 +174,7 @@ def run_level(level_num, num_bombs):
 
         for i in range(len(stars)):
             stars[i][1] += star_speed
-            screen.blit(star_img, (stars[i][0], stars[i][1]))  # crtamo sliku zvezde
+            screen.blit(star_img, (stars[i][0], stars[i][1]))  # crtamo zvezdu
 
             if stars[i][1] > height:
                 stars[i][1] = random.randint(-500, -20)
