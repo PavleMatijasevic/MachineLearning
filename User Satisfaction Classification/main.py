@@ -131,8 +131,28 @@ else:
 
 
 
+# Vizuelizacija vaznosti osobina
+# Dohvatanje kolona nakon OneHotEncoding-a
 
+encoded_feature_names = rf_pipeline.named_steps["preprocessing"].get_feature_names_out()
+feature_importances = rf_pipeline.named_steps["classifier"].feature_importances_
 
+# Kreiranje DataFrame-a za sortiranje i prikaz
+importance_df = pd.DataFrame({
+    "Feature": encoded_feature_names,
+    "Importance": feature_importances
+}).sort_values(by="Importance", ascending=False)
+
+top_features = importance_df.head(6)
+
+plt.figure(figsize=(10, 6))
+sns.barplot(data=top_features, x = "Importance", y = "Feature")
+plt.title("Top 10 najvaznijih osobina za predikciju zadovoljstva")
+plt.xlabel("Znacaj")
+plt.ylabel("Osobina")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
 
 
