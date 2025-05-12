@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./Reinforcement Learning Projects/CarDrive"
+    ]
+}
